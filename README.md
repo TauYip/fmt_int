@@ -3,7 +3,7 @@ Format integers on stack
 in binary, octal, decimal or hexadecimal.
 
 # Examples
-```
+```rust
 use fmt_int::{FmtInto, fmt_int};
 
 fn main() {
@@ -16,7 +16,7 @@ fn main() {
 }
 ```
 Or you can do it explicitly
-```
+```rust
 use fmt_int::{FmtInto, NumBuffer, binary};
 
 fn main() {
@@ -32,12 +32,12 @@ with [`Formatter`](https://doc.rust-lang.org/1.98.0/core/fmt/struct.Formatter.ht
 which sometimes causes performance penalty.
 
 With this crate, you can do
-```
-# use fmt_int::*;
+```rust
+use fmt_int::*;
 ["bytes: ", fmt_int!("{:b}", 123u8)].concat();
 ```
 which is faster and more memory efficient than
-```
+```rust
 format!("bytes: {:b}", 123);
 ```
 
