@@ -2,7 +2,7 @@
 
 use core::mem::MaybeUninit;
 
-// Based on [standard library](https://doc.rust-lang.org/stable/src/core/fmt/num.rs.html).
+// Based on [standard library](https://doc.rust-lang.org/1.98.0/src/core/fmt/num.rs.html).
 macro_rules! radix_integer {
     ($radix_trait:ident, $radix_marker:ident, $signed:ident and $unsigned:ident, $dig_tab:literal) => {
         impl $radix_trait for $unsigned {
