@@ -17,10 +17,10 @@ fn main() {
 ```
 Or you can do it explicitly
 ```rust
-use fmt_int::{FmtInto, NumBuffer, binary};
+use fmt_int::{FmtInto, NumBuffer, Binary};
 
 fn main() {
-    let mut buf = NumBuffer::<binary, _>::new();
+    let mut buf = NumBuffer::<Binary, _>::new();
     _ = 123u8.fmt_into(&mut buf);
 }
 ```
