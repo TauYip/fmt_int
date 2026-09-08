@@ -16,38 +16,35 @@ macro_rules! radix_integer {
 
         impl FmtInto<$radix> for $unsigned {
             fn fmt_into(self, buf: &mut NumBuffer<$radix, Self>) -> &str {
-                fn fmt(this: $unsigned, buf: &mut [MaybeUninit<u8>]) -> &str {
-                    // ASCII digits in ascending order are used as a lookup table.
-                    const DIG_TAB: &[u8] = $dig_tab;
-                    const BASE: $unsigned = DIG_TAB.len() as $unsigned;
+                // ASCII digits in ascending order are used as a lookup table.
+                const DIG_TAB: &[u8] = $dig_tab;
+                const BASE: $unsigned = DIG_TAB.len() as $unsigned;
 
-                    // Count the number of bytes in `buf` that are not initialized.
-                    let mut offset = buf.len();
+                let buf = &mut buf.0;
+                // Count the number of bytes in `buf` that are not initialized.
+                let mut offset = buf.len();
 
-                    // Accumulate each digit of the number from the least
-                    // significant to the most significant figure.
-                    let mut remain = this;
-                    loop {
-                        let digit = remain % BASE;
-                        remain /= BASE;
+                // Accumulate each digit of the number from the least
+                // significant to the most significant figure.
+                let mut remain = self;
+                loop {
+                    let digit = remain % BASE;
+                    remain /= BASE;
 
-                        offset -= 1;
-                        // SAFETY: `remain` will reach 0 and we will break before `offset` wraps
-                        unsafe { core::hint::assert_unchecked(offset < buf.len()) }
-                        buf[offset].write(DIG_TAB[digit as usize]);
-                        if remain == 0 {
-                            break;
-                        }
+                    offset -= 1;
+                    // SAFETY: `remain` will reach 0 and we will break before `offset` wraps
+                    unsafe { core::hint::assert_unchecked(offset < buf.len()) }
+                    buf[offset].write(DIG_TAB[digit as usize]);
+                    if remain == 0 {
+                        break;
                     }
-
-                    // SAFETY: `offset` is always included between 0 and `buf`'s length.
-                    let written = unsafe { buf.get_unchecked(offset..) };
-                    // SAFETY: (`assume_init_ref`) All `buf` content since offset is set.
-                    // SAFETY: (`from_utf8_unchecked`) Writes use ASCII from the lookup table exclusively.
-                    unsafe { str::from_utf8_unchecked(written.assume_init_ref()) }
                 }
 
-                fmt(self, &mut buf.0)
+                // SAFETY: `offset` is always included between 0 and `buf`'s length.
+                let written = unsafe { buf.get_unchecked(offset..) };
+                // SAFETY: (`assume_init_ref`) All `buf` content since offset is set.
+                // SAFETY: (`from_utf8_unchecked`) Writes use ASCII from the lookup table exclusively.
+                unsafe { str::from_utf8_unchecked(written.assume_init_ref()) }
             }
         }
 
