@@ -1,5 +1,3 @@
-// Stupid workaround before const trait is stabilized.
-
 use core::{marker::PhantomData, mem::MaybeUninit};
 
 use crate::{Binary, LowerHex, NumBuffer, NumBufferTrait, Octal, RadixMarker, UpperHex};
