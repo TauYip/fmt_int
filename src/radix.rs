@@ -1,7 +1,7 @@
 use core::mem::MaybeUninit;
 
 // Based on [standard library](https://doc.rust-lang.org/1.98.0/src/core/fmt/num.rs.html).
-macro_rules! radix_integer {
+macro_rules! radix {
     ($radix:ty, $signed:ident and $unsigned:ident, $dig_tab:literal) => {
         impl NumBufferTrait<$radix> for $unsigned {
             type Buf =
@@ -61,27 +61,27 @@ macro_rules! radix_integer {
     };
 }
 
-macro_rules! radix_integers {
+macro_rules! radixes {
     ($signed:ident, $unsigned:ident) => {
-        radix_integer! { Binary,   $signed and $unsigned, b"01" }
-        radix_integer! { Octal,    $signed and $unsigned, b"01234567" }
-        radix_integer! { LowerHex, $signed and $unsigned, b"0123456789abcdef" }
-        radix_integer! { UpperHex, $signed and $unsigned, b"0123456789ABCDEF" }
+        radix! { Binary,   $signed and $unsigned, b"01" }
+        radix! { Octal,    $signed and $unsigned, b"01234567" }
+        radix! { LowerHex, $signed and $unsigned, b"0123456789abcdef" }
+        radix! { UpperHex, $signed and $unsigned, b"0123456789ABCDEF" }
     };
 }
 
-radix_integers! { i8, u8 }
-radix_integers! { i16, u16 }
-radix_integers! { i32, u32 }
-radix_integers! { i64, u64 }
-radix_integers! { i128, u128 }
-radix_integers! { isize, usize }
+radixes! { i8, u8 }
+radixes! { i16, u16 }
+radixes! { i32, u32 }
+radixes! { i64, u64 }
+radixes! { i128, u128 }
+radixes! { isize, usize }
 
-pub struct NumBuffer<Radix: RadixMarker, N: NumBufferTrait<Radix>>(N::Buf);
+pub struct NumBuffer<Radix: RadixMarker, N: NumBufferTrait<Radix>>(#[doc(hidden)] pub N::Buf);
 
 impl<Radix: RadixMarker, N: NumBufferTrait<Radix>> NumBuffer<Radix, N> {
     #[allow(clippy::new_without_default)]
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self(N::DEFAULT)
     }
 }

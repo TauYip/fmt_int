@@ -1,8 +1,10 @@
 #![doc = include_str!("../README.md")]
 #![cfg_attr(not(test), no_std)]
 
+mod konst;
 pub mod radix;
 
+pub use konst::*;
 pub use radix::*;
 
 /// See [crate level documentation](self) for more information.
