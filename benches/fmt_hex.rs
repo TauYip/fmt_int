@@ -122,23 +122,23 @@ fn numtoa_bench() {
 fn fmt_int_bench() {
     use fmt_int::*;
 
-    black_box(fmt_int!("{:x}", i8::MAX));
-    black_box(fmt_int!("{:x}", i16::MAX));
-    black_box(fmt_int!("{:x}", i32::MAX));
-    black_box(fmt_int!("{:x}", i64::MAX));
-    black_box(fmt_int!("{:x}", i128::MAX));
-    black_box(fmt_int!("{:x}", isize::MAX));
-    black_box(fmt_int!("{:x}", i8::MIN));
-    black_box(fmt_int!("{:x}", i16::MIN));
-    black_box(fmt_int!("{:x}", i32::MIN));
-    black_box(fmt_int!("{:x}", i64::MIN));
-    black_box(fmt_int!("{:x}", i128::MIN));
+    black_box(fmt_int!("{:x}", black_box(i8::MAX)));
+    black_box(fmt_int!("{:x}", black_box(i16::MAX)));
+    black_box(fmt_int!("{:x}", black_box(i32::MAX)));
+    black_box(fmt_int!("{:x}", black_box(i64::MAX)));
+    black_box(fmt_int!("{:x}", black_box(i128::MAX)));
+    black_box(fmt_int!("{:x}", black_box(isize::MAX)));
+    black_box(fmt_int!("{:x}", black_box(i8::MIN)));
+    black_box(fmt_int!("{:x}", black_box(i16::MIN)));
+    black_box(fmt_int!("{:x}", black_box(i32::MIN)));
+    black_box(fmt_int!("{:x}", black_box(i64::MIN)));
+    black_box(fmt_int!("{:x}", black_box(i128::MIN)));
 
-    black_box(fmt_int!("{:x}", u8::MAX));
-    black_box(fmt_int!("{:x}", u16::MAX));
-    black_box(fmt_int!("{:x}", u32::MAX));
-    black_box(fmt_int!("{:x}", u64::MAX));
-    black_box(fmt_int!("{:x}", u128::MAX));
+    black_box(fmt_int!("{:x}", black_box(u8::MAX)));
+    black_box(fmt_int!("{:x}", black_box(u16::MAX)));
+    black_box(fmt_int!("{:x}", black_box(u32::MAX)));
+    black_box(fmt_int!("{:x}", black_box(u64::MAX)));
+    black_box(fmt_int!("{:x}", black_box(u128::MAX)));
 }
 
 fn bench(c: &mut Criterion) {
