@@ -8,44 +8,37 @@ pub struct NameSpace<Radix: RadixMarker, Int>(PhantomData<(Radix, Int)>);
 macro_rules! radix {
     ($radix:ty, $signed:ident and $unsigned:ident, $dig_tab:literal) => {
         impl NameSpace<$radix, $unsigned> {
-            pub const fn fmt(
-                this: $unsigned,
-                mut buf: NumBuffer<$radix, $unsigned>,
-            ) -> (NumBuffer<$radix, $unsigned>, usize) {
+            pub const fn fmt(this: $unsigned, buf: &mut NumBuffer<$radix, $unsigned>) -> usize {
                 const DIG_TAB: &[u8] = $dig_tab;
                 const BASE: $unsigned = DIG_TAB.len() as $unsigned;
 
-                let buf_mut = &mut buf.0;
-                let mut offset = buf_mut.len();
+                let buf = &mut buf.0;
+                let mut offset = buf.len();
                 let mut remain = this;
                 loop {
                     let digit = remain % BASE;
                     remain /= BASE;
                     offset -= 1;
                     // SAFETY: `remain` will reach 0 and we will break before `offset` wraps
-                    unsafe { core::hint::assert_unchecked(offset < buf_mut.len()) }
-                    buf_mut[offset].write(DIG_TAB[digit as usize]);
+                    unsafe { core::hint::assert_unchecked(offset < buf.len()) }
+                    buf[offset].write(DIG_TAB[digit as usize]);
                     if remain == 0 {
                         break;
                     }
                 }
-                (buf, offset)
+                offset
             }
         }
 
         impl NameSpace<$radix, $signed> {
             // Format signed integers in the two's-complement form.
-            pub const fn fmt(
-                this: $signed,
-                buf: NumBuffer<$radix, $signed>,
-            ) -> (NumBuffer<$radix, $signed>, usize) {
+            pub const fn fmt(this: $signed, buf: &mut NumBuffer<$radix, $signed>) -> usize {
                 // SAFETY:
                 // `NumBuffer<$radix, $signed>` and `NumBuffer<$radix, $unsigned>`
                 // are the same things.
-                let buf: NumBuffer<$radix, $unsigned> = unsafe { core::mem::transmute(buf) };
-                let (buf, offset) = NameSpace::<$radix, $unsigned>::fmt(this.cast_unsigned(), buf);
-                let buf: NumBuffer<$radix, $signed> = unsafe { core::mem::transmute(buf) };
-                (buf, offset)
+                let buf: &mut NumBuffer<$radix, $unsigned> = unsafe { core::mem::transmute(buf) };
+                let offset = NameSpace::<$radix, $unsigned>::fmt(this.cast_unsigned(), buf);
+                offset
             }
         }
     };
@@ -85,58 +78,52 @@ macro_rules! decimal {
         }
 
         impl NameSpace<Decimal, $unsigned> {
-            pub const fn fmt(
-                this: $unsigned,
-                mut buf: NumBuffer<Decimal, $unsigned>,
-            ) -> (NumBuffer<Decimal, $unsigned>, usize) {
+            pub const fn fmt(this: $unsigned, buf: &mut NumBuffer<Decimal, $unsigned>) -> usize {
                 const DIG_TAB: &[u8] = b"0123456789";
                 const BASE: $unsigned = DIG_TAB.len() as $unsigned;
 
-                let buf_mut = &mut buf.0;
-                let mut offset = buf_mut.len();
+                let buf = &mut buf.0;
+                let mut offset = buf.len();
                 let mut remain = this;
                 loop {
                     let digit = remain % BASE;
                     remain /= BASE;
                     offset -= 1;
                     // SAFETY: `remain` will reach 0 and we will break before `offset` wraps
-                    unsafe { core::hint::assert_unchecked(offset < buf_mut.len()) }
-                    buf_mut[offset].write(DIG_TAB[digit as usize]);
+                    unsafe { core::hint::assert_unchecked(offset < buf.len()) }
+                    buf[offset].write(DIG_TAB[digit as usize]);
                     if remain == 0 {
                         break;
                     }
                 }
-                (buf, offset)
+                offset
             }
         }
 
         impl NameSpace<Decimal, $signed> {
-            pub const fn fmt(
-                this: $signed,
-                mut buf: NumBuffer<Decimal, $signed>,
-            ) -> (NumBuffer<Decimal, $signed>, usize) {
+            pub const fn fmt(this: $signed, buf: &mut NumBuffer<Decimal, $signed>) -> usize {
                 const DIG_TAB: &[u8] = b"0123456789";
                 const BASE: $unsigned = DIG_TAB.len() as $unsigned;
 
-                let buf_mut = &mut buf.0;
-                let mut offset = buf_mut.len();
+                let buf = &mut buf.0;
+                let mut offset = buf.len();
                 let mut remain = this.unsigned_abs();
                 loop {
                     let digit = remain % BASE;
                     remain /= BASE;
                     offset -= 1;
                     // SAFETY: `remain` will reach 0 and we will break before `offset` wraps
-                    unsafe { core::hint::assert_unchecked(offset < buf_mut.len()) }
-                    buf_mut[offset].write(DIG_TAB[digit as usize]);
+                    unsafe { core::hint::assert_unchecked(offset < buf.len()) }
+                    buf[offset].write(DIG_TAB[digit as usize]);
                     if remain == 0 {
                         break;
                     }
                 }
                 if this < 0 {
                     offset -= 1;
-                    buf_mut[offset].write(b'-');
+                    buf[offset].write(b'-');
                 }
-                (buf, offset)
+                offset
             }
         }
     };
@@ -153,8 +140,11 @@ decimal! { isize, usize }
 #[doc(hidden)]
 macro_rules! _const_fmt_int {
     ($num:expr, $num_ty:ty, $radix:ident) => {{
-        const DATA: ($crate::NumBuffer<$crate::$radix, $num_ty>, usize) =
-            $crate::NameSpace::<$crate::$radix, $num_ty>::fmt($num, $crate::NumBuffer::new());
+        const DATA: ($crate::NumBuffer<$crate::$radix, $num_ty>, usize) = {
+            let mut buf = $crate::NumBuffer::new();
+            let offset = $crate::NameSpace::<$crate::$radix, $num_ty>::fmt($num, &mut buf);
+            (buf, offset)
+        };
         // Discard uninitialized bytes in `DATA.0`.
         const EXACT_BUF: [u8; DATA.0.0.len() - DATA.1] = unsafe {
             let buf = DATA.0;
